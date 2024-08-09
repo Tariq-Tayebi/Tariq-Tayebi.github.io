@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chat Application</title>
+    <style>
+        body { font-family: Arial, sans-serif; }
+        #chat { max-width: 600px; margin: 0 auto; }
+        #messages { border: 1px solid #ccc; height: 300px; overflow-y: scroll; padding: 10px; }
+        #form { display: flex; }
+        #input { flex: 1; padding: 10px; }
+        #send { padding: 10px; }
+    </style>
+</head>
+<body>
+<div id="chat">
+    <h1>Chat Application</h1>
+    <div id="messages"></div>
+    <form id="form">
+        <input id="input" autocomplete="off" placeholder="Type a message..." /><button id="send">Send</button>
+    </form>
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        fetch('chat.csv')
+            .then(response => response.text())
+            .then(data => {
+                const messages = document.getElementById('messages');
+                const rows = data.split('\n');
+                rows.forEach(row => {
+                    if (row.trim()) {
+                        const [message, name] = row.split(',');
+                        const messageDiv = document.createElement('div');
+                        messageDiv.textContent = `${name.trim()}: ${message.trim()}`;
+                        messages.appendChild(messageDiv);
+                    }
+                });
+            });
+
+        const form = document.getElementById('form');
+        const input = document.getElementById('input');
+
+        form.addEventListener('submit', function(event) {
+            event.preventDefault();
+            if (input.value) {
+                const message = input.value;
+                const name = 'User'; // Replace with dynamic user name if needed
+                const messageDiv = document.createElement('div');
+                messageDiv.textContent = `${name}: ${message}`;
+                messages.appendChild(messageDiv);
+
+                // Save the chat to a CSV file
+                const csvContent = `${message},${name}\n`;
+                const encodedUri = encodeURI(`data:text/csv;charset=utf-8,${csvContent}`);
+                const link = document.createElement("a");
+                link.setAttribute("href", encodedUri);
+                link.setAttribute("download", "chat.csv");
+                document.body.appendChild(link); // Required for FF
+                link.click();
+                document.body.removeChild(link);
+
+                input.value = '';
+            }
+        });
+    });
+</script>
+</body>
+</html>
